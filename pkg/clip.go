@@ -12,6 +12,22 @@ type TrackedBranch struct {
 
 type TrackedBranchMap map[string]*TrackedBranch
 
+type Branch struct {
+	Name string
+	Ref  string
+	Sha  string
+}
+
+type BranchMap map[string]*Branch
+
+func NewBranch(name, ref, sha string) *Branch {
+	return &Branch{
+		Name: name,
+		Ref:  strings.Trim(ref, " "),
+		Sha:  strings.Trim(sha, " "),
+	}
+}
+
 func ParseTrackedBranches(input string, result TrackedBranchMap) error {
 	regexBranch, _ := regexp.Compile(`branch\.(.*?)\.remote (.+)`)
 	regexMerge, _ := regexp.Compile(`branch\.(.*?)\.merge ((refs\/)?heads\/)?(.+)`)
@@ -32,6 +48,39 @@ func ParseTrackedBranches(input string, result TrackedBranchMap) error {
 				tracked.Merge = name
 			} else {
 				result[merge[1]] = &TrackedBranch{Merge: name}
+			}
+		}
+	}
+	return nil
+}
+
+func ParseBranches(input string, all map[string]BranchMap) error {
+	regexLocal, _ := regexp.Compile(`^heads\/(.+)$`)
+	regexRemote, _ := regexp.Compile(`^remotes\/(.+?)\/(.+)$`)
+
+	for _, line := range strings.Split(input, "\n") {
+		ref := strings.Split(line, "refs/")
+		if len(ref) != 2 {
+			continue
+		}
+		// Is a local Branch
+		match := regexLocal.FindStringSubmatch(ref[1])
+		if len(match) != 0 {
+			if local, ok := all["local"]; ok {
+				local[match[1]] = NewBranch(match[1], ref[1], ref[0])
+			} else {
+				all["local"] = BranchMap{}
+				all["local"][match[1]] = NewBranch(match[1], ref[1], ref[0])
+			}
+		}
+		// Is a Remote Branch
+		match = regexRemote.FindStringSubmatch(ref[1])
+		if len(match) != 0 {
+			if remote, ok := all[match[1]]; ok {
+				remote[match[2]] = NewBranch(match[1], ref[1], ref[0])
+			} else {
+				all[match[1]] = BranchMap{}
+				all[match[1]][match[1]] = NewBranch(match[1], ref[1], ref[0])
 			}
 		}
 	}
