@@ -57,14 +57,16 @@ var _ = Describe("pkg.clip", func() {
 			local := branches["local"]
 			Expect(len(local)).To(Equal(3))
 
-			// Should be a master
-			master := local["master"]
+			// Should be master
+			master, ok := local["master"]
+			Expect(ok).To(Equal(true))
 			Expect(master.Name).To(Equal("master"))
 			Expect(master.Ref).To(Equal("heads/master"))
 			Expect(master.Sha).To(Equal("2dc90a39c09e52045a483fc8b58e45da386fb149"))
 
-			// Should be a re-fix-version
-			fix := local["re-fix-version"]
+			// Should be re-fix-version
+			fix, ok := local["re-fix-version"]
+			Expect(ok).To(Equal(true))
 			Expect(fix.Name).To(Equal("re-fix-version"))
 			Expect(fix.Ref).To(Equal("heads/re-fix-version"))
 			Expect(fix.Sha).To(Equal("228ea1897661759a46541676e6de0cc6bc0bddfc"))
@@ -72,10 +74,35 @@ var _ = Describe("pkg.clip", func() {
 		It("Should parse 5 origin branches", func() {
 			origin := branches["origin"]
 			Expect(len(origin)).To(Equal(5))
+
+			head, ok := origin["HEAD"]
+			Expect(ok).To(Equal(true))
+			Expect(head.Name).To(Equal("HEAD"))
+			Expect(head.Ref).To(Equal("remotes/origin/HEAD"))
+			Expect(head.Sha).To(Equal("2dc90a39c09e52045a483fc8b58e45da386fb149"))
+
+			_, ok = origin["master"]
+			Expect(ok).To(Equal(true))
+			_, ok = origin["fix-version"]
+			Expect(ok).To(Equal(true))
+			_, ok = origin["base-and-flake-fix"]
+			Expect(ok).To(Equal(true))
 		})
 		It("Should parse 2 upstream branches", func() {
-			upstream := branches["origin"]
-			Expect(len(upstream)).To(Equal(5))
+			upstream := branches["upstream"]
+			Expect(len(upstream)).To(Equal(2))
+
+			master, ok := upstream["master"]
+			Expect(ok).To(Equal(true))
+			Expect(master.Name).To(Equal("master"))
+			Expect(master.Ref).To(Equal("remotes/upstream/master"))
+			Expect(master.Sha).To(Equal("2dc90a39c09e52045a483fc8b58e45da386fb149"))
+
+			fix, ok := upstream["fix-version"]
+			Expect(ok).To(Equal(true))
+			Expect(fix.Name).To(Equal("fix-version"))
+			Expect(fix.Ref).To(Equal("remotes/upstream/fix-version"))
+			Expect(fix.Sha).To(Equal("ac0ff092a6bd193fe73660a8f0302e5ed32911dc"))
 		})
 	})
 })

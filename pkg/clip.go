@@ -77,10 +77,10 @@ func ParseBranches(input string, all map[string]BranchMap) error {
 		match = regexRemote.FindStringSubmatch(ref[1])
 		if len(match) != 0 {
 			if remote, ok := all[match[1]]; ok {
-				remote[match[2]] = NewBranch(match[1], ref[1], ref[0])
+				remote[match[2]] = NewBranch(match[2], ref[1], ref[0])
 			} else {
 				all[match[1]] = BranchMap{}
-				all[match[1]][match[1]] = NewBranch(match[1], ref[1], ref[0])
+				all[match[1]][match[2]] = NewBranch(match[2], ref[1], ref[0])
 			}
 		}
 	}
