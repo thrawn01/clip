@@ -1,0 +1,11 @@
+#!/bin/bash
+ROOT=/usr/local/clip
+echo "Fixing permissions"
+cd $ROOT
+find . -exec chmod ugo+r \{\} \;
+find . -type d -exec chmod ugo+rx \{\} \;
+chmod o-w .
+
+echo "Link to git"
+cd `/usr/local/bin/git --exec-path`
+ln -s $ROOT/bin/git-* .

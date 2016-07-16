@@ -1,0 +1,7 @@
+.idea/
+*.iml
+bin/
+vendor/
+release/
+.DS_Store
+git-*

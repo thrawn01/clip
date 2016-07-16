@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-script minSpecVersion="1.000000">
+    <title>Clip</title>
+    <options customize="never" allow-external-scripts="no"/>
+    <domains enable_localSystem="true" />
+    <installation-check script="installCheck();"/>
+    <script>
+function installCheck() {
+    if(!(system.compareVersions(system.version.ProductVersion, '10.6.0') >= 0)) {
+        my.result.title = 'Unable to install';
+        my.result.message = 'Clip requires Mac OS X 10.6 or later.';
+        my.result.type = 'Fatal';
+        return false;
+    }
+    if(!system.files.fileExistsAtPath('/usr/local/bin/git')) {
+	    my.result.title = 'Unable to install';
+	    my.result.message = 'Git is required by clip for proper installation. Please install git from https://git-scm.com/downloads.';
+	    my.result.type = 'Fatal';
+	    return false;
+	}
+    if(system.files.fileExistsAtPath('/usr/local/clip/bin/clip')) {
+	    my.result.title = 'Previous Installation Detected';
+	    my.result.message = 'A previous installation of Clip exists at /usr/local/clip. This installer will remove the previous installation prior to installing. Please back up any data before proceeding.';
+	    my.result.type = 'Warning';
+	    return false;
+	}
+    return true;    
+}
+    </script>
+    <choices-outline>
+        <line choice="org.thrawn01.clip.choice"/>
+    </choices-outline>
+    <choice id="org.thrawn01.clip.choice" title="Clip">
+        <pkg-ref id="org.thrawn01.clip.pkg"/>
+    </choice>
+    <pkg-ref id="org.thrawn01.clip.pkg" auth="Root">org.thrawn01.clip.pkg</pkg-ref>
+</installer-script>

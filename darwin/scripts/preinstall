@@ -1,0 +1,6 @@
+#!/bin/bash
+ROOT=/usr/local/clip
+echo "Removing previous installation"
+if [ -d $ROOT ]; then
+	rm -rf $ROOT
+fi
