@@ -194,7 +194,6 @@ var _ = Describe("pkg.clip", func() {
 			Expect(remotes[1].Sha).To(Equal("2dc90a39c09e52045a483fc8b58e45da386fb149"))
 		})
 	})
-
 	Describe("MergeBranchDetail()", func() {
 		It("Should merge tracked and reference branches into a BranchDetailMap{}", func() {
 			details := pkg.BranchDetailMap{}
@@ -219,6 +218,26 @@ var _ = Describe("pkg.clip", func() {
 			master := details["master"]
 			Expect(master.Name).To(Equal("master"))
 			Expect(master.Tracked.Remote).To(Equal("origin"))
+		})
+	})
+	Describe("CommitsBetween()", func() {
+		It("Should return commits between begin and ending sha's", func() {
+			commits := make([]string, 0)
+
+			// These sha's exist within our own repository
+			err := pkg.CommitsBetween(&commits, "152b5832f1e6f06d3efed6e55657c997c41855ed",
+				"c73462192ad2e0a690bad82659a7f7c7a1a8bc62")
+			Expect(err).To(BeNil())
+			Expect(len(commits)).To(Equal(3))
+		})
+		It("Should return zero commits if begin and ending sha's are the same", func() {
+			commits := make([]string, 0)
+
+			// These sha's exist within our own repository
+			err := pkg.CommitsBetween(&commits, "152b5832f1e6f06d3efed6e55657c997c41855ed",
+				"152b5832f1e6f06d3efed6e55657c997c41855ed")
+			Expect(err).To(BeNil())
+			Expect(len(commits)).To(Equal(0))
 		})
 	})
 })

@@ -1,10 +1,12 @@
 package pkg
 
 import (
-	"errors"
 	"fmt"
+	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type TrackedBranch struct {
@@ -164,4 +166,32 @@ func MergeBranchDetail(result BranchDetailMap, refs BranchReferenceMap, tracked 
 		}
 	}
 	return nil
+}
+
+func CommitsBetween(commits *[]string, begin, end string) error {
+	if begin == end {
+		return nil
+	}
+	var output string
+	if err := Run(&output, "git", "log", "--pretty='%h'", fmt.Sprintf("%s..%s", begin, end)); err != nil {
+		return errors.Wrap(err, "CommitsBetween()")
+	}
+	output = strings.TrimSpace(output)
+	if output == "" {
+		return nil
+	}
+	*commits = strings.Split(output, "\n")
+	return nil
+}
+
+func Run(buf *string, name string, args ...string) error {
+	var err error
+	var output []byte
+	//fmt.Printf("Run: '%s %s'\n", name, args)
+	if output, err = exec.Command(name, args...).Output(); err != nil {
+		return errors.Wrapf(err, "error running '%s %s'", name, args)
+	} else {
+		*buf = string(output)
+		return nil
+	}
 }
