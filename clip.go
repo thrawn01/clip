@@ -10,24 +10,6 @@ import (
 	"github.com/thrawn01/clip/pkg"
 )
 
-func listTrackedBranches(result pkg.TrackedBranchMap) error {
-	var output string
-	// Using git config list all the tracked branch entries
-	if err := pkg.Run(&output, "git", "config", "--get-regexp", "^branch\\."); err != nil {
-		return err
-	}
-	return pkg.ParseTrackedBranches(result, output)
-}
-
-func listBranchRefs(result map[string]pkg.BranchMap) error {
-	var output string
-	// Using git show-ref
-	if err := pkg.Run(&output, "git", "show-ref"); err != nil {
-		return err
-	}
-	return pkg.ParseBranchRefs(result, output)
-}
-
 func aheadBehind(output *string, master, branch string) error {
 	var ahead, behind []string
 	if err := pkg.CommitsBetween(&ahead, master, branch); err != nil {
@@ -55,7 +37,7 @@ func printRemotes(branch *pkg.BranchDetail) {
 		fmt.Printf("     %s ", remote.Ref)
 		// Commits Behind
 		if err := pkg.CommitsBetween(&commits, remote.Sha, branch.Sha); err != nil {
-			fmt.Sprintln(os.Stderr, err.Error())
+			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
 		if len(commits) != 0 {
@@ -64,7 +46,7 @@ func printRemotes(branch *pkg.BranchDetail) {
 		}
 		// Commits Ahead
 		if err := pkg.CommitsBetween(&commits, branch.Sha, remote.Sha); err != nil {
-			fmt.Sprintln(os.Stderr, err.Error())
+			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
 		if len(commits) != 0 {
@@ -81,20 +63,20 @@ func main() {
 	details := pkg.BranchDetailMap{}
 
 	// List Tracked Branches
-	if err := listTrackedBranches(trackedBranches); err != nil {
-		fmt.Sprintln(os.Stderr, err.Error())
+	if err := pkg.ListTrackedBranches(trackedBranches); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
 	// List All Branches organized by remote
-	if err := listBranchRefs(branchRefs); err != nil {
-		fmt.Sprintln(os.Stderr, err.Error())
+	if err := pkg.ListBranchRefs(branchRefs); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
 	// Collect all the branch information so it's simple to display
 	if err := pkg.MergeBranchDetail(details, branchRefs, trackedBranches); err != nil {
-		fmt.Sprintln(os.Stderr, err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
@@ -108,7 +90,7 @@ func main() {
 		}
 		if name != "master" {
 			if err := aheadBehind(&follow, details["master"].Sha, branch.Sha); err != nil {
-				fmt.Sprintln(os.Stderr, err.Error())
+				fmt.Fprintln(os.Stderr, err.Error())
 				os.Exit(1)
 			}
 		}

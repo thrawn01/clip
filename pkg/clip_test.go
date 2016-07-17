@@ -17,16 +17,6 @@ branch.base-and-flake-fix.merge refs/heads/base-and-flake-fix
 branch.fix-me-local.remote upstream
 branch.fix-me-local.merge refs/heads/fix-version`
 
-/*var gitConfig string = `branch.master.remote origin
-branch.master.merge refs/heads/master
-branch.re-fix-version.remote origin
-branch.re-fix-version.merge refs/heads/re-fix-version
-branch.fix-me-local.remote upstream
-branch.fix-me-local.merge refs/heads/fix-version
-branch.base-and-flake-fix.remote origin
-branch.base-and-flake-fix.merge refs/heads/base-and-flake-fix
-`*/
-
 var gitShowRef string = `5f813e2f5a9cd6335e36797dd3428a7632d52102 refs/heads/base-and-flake-fix
 1a55f87bb9542848d1b19c2bde3f1552426a6b99 refs/heads/fix-me-local
 2dc90a39c09e52045a483fc8b58e45da386fb149 refs/heads/master
@@ -42,20 +32,6 @@ ac0ff092a6bd193fe73660a8f0302e5ed32911dc refs/remotes/upstream/fix-version
 2dc90a39c09e52045a483fc8b58e45da386fb149 refs/tags/1.3.0
 77160475db9c4608ae4acf17fd1eb3e5b2195b2a refs/tags/v1.2.2
 `
-
-/*var gitShowRef string = `5f813e2f5a9cd6335e36797dd3428a7632d52102 refs/heads/base-and-flake-fix
-2dc90a39c09e52045a483fc8b58e45da386fb149 refs/heads/master
-ac0ff092a6bd193fe73660a8f0302e5ed32911dc refs/heads/fix-me-local
-228ea1897661759a46541676e6de0cc6bc0bddfc refs/heads/re-fix-version
-2dc90a39c09e52045a483fc8b58e45da386fb149 refs/remotes/origin/HEAD
-5f813e2f5a9cd6335e36797dd3428a7632d52102 refs/remotes/origin/base-and-flake-fix
-ac0ff092a6bd193fe73660a8f0302e5ed32911dc refs/remotes/origin/fix-version
-2dc90a39c09e52045a483fc8b58e45da386fb149 refs/remotes/origin/master
-228ea1897661759a46541676e6de0cc6bc0bddfc refs/remotes/origin/re-fix-version
-ac0ff092a6bd193fe73660a8f0302e5ed32911dc refs/remotes/upstream/fix-version
-77160475db9c4608ae4acf17fd1eb3e5b2195b2a refs/tags/v1.2.2
-2dc90a39c09e52045a483fc8b58e45da386fb149 refs/remotes/upstream/master
-`*/
 
 func TestClip(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -238,6 +214,66 @@ var _ = Describe("pkg.clip", func() {
 				"152b5832f1e6f06d3efed6e55657c997c41855ed")
 			Expect(err).To(BeNil())
 			Expect(len(commits)).To(Equal(0))
+		})
+	})
+	Describe("ExistsLocally()", func() {
+		var refs pkg.BranchReferenceMap
+
+		BeforeEach(func() {
+			refs = pkg.BranchReferenceMap{}
+			err := pkg.ParseBranchRefs(refs, gitShowRef)
+			Expect(err).To(BeNil())
+		})
+
+		It("Should return true if the branch exists locally", func() {
+			result := pkg.ExistsLocally(&pkg.Branch{Name: "master"}, refs)
+			Expect(result).To(Equal(true))
+			result = pkg.ExistsLocally(&pkg.Branch{Name: "fix-me-local"}, refs)
+			Expect(result).To(Equal(true))
+		})
+		It("Should return false if the branch doesn't exist locally", func() {
+			result := pkg.ExistsLocally(&pkg.Branch{Name: "unknown-branch"}, refs)
+			Expect(result).To(Equal(false))
+		})
+	})
+	Describe("ExistsRemotely()", func() {
+		var refs pkg.BranchReferenceMap
+
+		BeforeEach(func() {
+			refs = pkg.BranchReferenceMap{}
+			err := pkg.ParseBranchRefs(refs, gitShowRef)
+			Expect(err).To(BeNil())
+		})
+
+		It("Should return true if the branch exists on the specified remote", func() {
+			result := pkg.ExistsRemotely(&pkg.Branch{Name: "master"}, "origin", refs)
+			Expect(result).To(Equal(true))
+			result = pkg.ExistsRemotely(&pkg.Branch{Name: "fix-version"}, "upstream", refs)
+			Expect(result).To(Equal(true))
+		})
+		It("Should return false if the branch doesn't exist on the specified remote", func() {
+			result := pkg.ExistsRemotely(&pkg.Branch{Name: "fix-me-local"}, "origin", refs)
+			Expect(result).To(Equal(false))
+		})
+	})
+	Describe("IsTracked()", func() {
+		var tracked pkg.TrackedBranchMap
+
+		BeforeEach(func() {
+			tracked = pkg.TrackedBranchMap{}
+			err := pkg.ParseTrackedBranches(tracked, gitConfig)
+			Expect(err).To(BeNil())
+		})
+
+		It("Should return true if the branch is tracked remotely", func() {
+			result := pkg.IsTracked(&pkg.Branch{Name: "master"}, "origin", tracked)
+			Expect(result).To(Equal(true))
+			result = pkg.IsTracked(&pkg.Branch{Name: "fix-me-local"}, "upstream", tracked)
+			Expect(result).To(Equal(true))
+		})
+		It("Should return false if the branch is tracked remotely but is on wrong remote", func() {
+			result := pkg.IsTracked(&pkg.Branch{Name: "fix-me-local"}, "origin", tracked)
+			Expect(result).To(Equal(false))
 		})
 	})
 })

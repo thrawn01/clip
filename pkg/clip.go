@@ -6,6 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	"bufio"
+	"os"
+
 	"github.com/pkg/errors"
 )
 
@@ -51,6 +54,22 @@ func NewBranchDetail(branch *Branch) *BranchDetail {
 	}
 }
 
+func ListTrackedBranches(result TrackedBranchMap) error {
+	var output string
+	// Using git config list all the tracked branch entries
+	if err := Run(&output, "git", "config", "--get-regexp", "^branch\\."); err != nil {
+		return err
+	}
+	return ParseTrackedBranches(result, output)
+}
+
+// Parse the output of `git config` and return a structure that looks like
+//
+//	tracked := map[string]*TrackedBranch {
+//		"master": &TrackedBranch{ Remote: "origin", Merge: "refs/head/master"},
+//		"fix-me-local": &TrackedBranch{ Remote: "upstream", Merge: "refs/head/fix-version"},
+//	}
+//
 func ParseTrackedBranches(result TrackedBranchMap, input string) error {
 	regexBranch, _ := regexp.Compile(`branch\.(.*?)\.remote (.+)`)
 	regexMerge, _ := regexp.Compile(`branch\.(.*?)\.merge ((refs\/)?heads\/)?(.+)`)
@@ -77,6 +96,33 @@ func ParseTrackedBranches(result TrackedBranchMap, input string) error {
 	return nil
 }
 
+func ListBranchRefs(result map[string]BranchMap) error {
+	var output string
+	// Using git show-ref
+	if err := Run(&output, "git", "show-ref"); err != nil {
+		return err
+	}
+	return ParseBranchRefs(result, output)
+}
+
+// Parse the output of `git show-ref` and return a structure that looks like
+//
+// 	all := map[string]BranchMap {
+//		"local": map[string]*Branch {
+//			"master": &Branch{
+//			 	Name: "master",
+//			 	Sha: "2dc90a39c09e52045a483fc8b58e45da386fb149",
+//			 	Ref: "remotes/origin/HEAD",
+//			},
+//		}
+//		"origin": map[string]*Branch {
+//			"master": &Branch{
+//			 	Name: "master",
+//			 	Sha: "2dc90a39c09e52045a483fc8b58e45da386fb149",
+//				Ref: "remotes/origin/HEAD",
+//			},
+//	}
+//
 func ParseBranchRefs(all map[string]BranchMap, input string) error {
 	regexLocal, _ := regexp.Compile(`^heads\/(.+)$`)
 	regexRemote, _ := regexp.Compile(`^remotes\/(.+?)\/(.+)$`)
@@ -111,22 +157,18 @@ func ParseBranchRefs(all map[string]BranchMap, input string) error {
 }
 
 func FindTrackedBranches(result *BranchDetail, refs BranchReferenceMap, tracked TrackedBranchMap) error {
-	regexRemoteName, _ := regexp.Compile(`((refs\/)?heads\/)?(.+)`)
-
 	// If this branch is listed as a tracked branch
 	if trackedBranch, ok := tracked[result.Name]; ok {
 		result.Tracked = trackedBranch
 
 		// If the remote tracked branch name differs from the local branch name
 		if !strings.HasSuffix(trackedBranch.Merge, result.Name) {
-			// Get the remote name
-			match := regexRemoteName.FindStringSubmatch(trackedBranch.Merge)
-			if len(match) != 4 {
-				return errors.New(fmt.Sprintf("Failed to extract tracked branch's"+
-					" remote name from '%s'", trackedBranch.Merge))
+			remote, err := GetRemoteBranchName(trackedBranch.Merge)
+			if err != nil {
+				return errors.Wrap(err, "FindTrackedBranches()")
 			}
 			// Add this branch to our list of remotes
-			result.Remotes = append(result.Remotes, refs[trackedBranch.Remote][match[3]])
+			result.Remotes = append(result.Remotes, refs[trackedBranch.Remote][remote])
 		}
 	}
 	return nil
@@ -193,5 +235,75 @@ func Run(buf *string, name string, args ...string) error {
 	} else {
 		*buf = string(output)
 		return nil
+	}
+}
+
+func ExistsLocally(needle *Branch, refs BranchReferenceMap) bool {
+	for name, _ := range refs["local"] {
+		if needle.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func ExistsRemotely(needle *Branch, remote string, refs BranchReferenceMap) bool {
+	for name, _ := range refs[remote] {
+		if needle.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func IsTracked(needle *Branch, remote string, tracked TrackedBranchMap) bool {
+	for name, branch := range tracked {
+		// If tracked branch shares our name and it's tracking the same remote we are interested in
+		if needle.Name == name && branch.Remote == remote {
+			return true
+		}
+	}
+	return false
+}
+
+func GetRemoteBranchName(merge string) (string, error) {
+	regexRemoteName, _ := regexp.Compile(`((refs\/)?heads\/)?(.+)`)
+	// Get the remote name
+	match := regexRemoteName.FindStringSubmatch(merge)
+	if len(match) != 4 {
+		return "", errors.New(fmt.Sprintf("Failed to extract tracked branch's"+
+			" remote name from '%s'", merge))
+	}
+	return match[3], nil
+}
+
+type Opts struct {
+	Default  string
+	Validate func(string) bool
+}
+
+func readInput(opts Opts, msg string, args ...interface{}) string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("%s > ", fmt.Sprintf(msg, args...))
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return opts.Default
+	}
+	return input
+}
+
+func YesNo(opts Opts, msg string, args ...interface{}) bool {
+	isYes, _ := regexp.Compile(`^(Y|y)$`)
+	isNo, _ := regexp.Compile(`^(N|n)$`)
+
+	for {
+		input := readInput(opts, fmt.Sprintf("%s (Y/N)", msg), args...)
+		if isYes.MatchString(input) {
+			return true
+		}
+		if isNo.MatchString(input) {
+			return false
+		}
 	}
 }
