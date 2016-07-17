@@ -35,8 +35,9 @@ type BranchDetailMap map[string]*BranchDetail
 
 func NewBranch(name, ref, sha string) *Branch {
 	return &Branch{
-		Ref: strings.Trim(ref, " "),
-		Sha: strings.Trim(sha, " "),
+		Name: name,
+		Ref:  strings.Trim(ref, " "),
+		Sha:  strings.Trim(sha, " "),
 	}
 }
 
@@ -48,7 +49,7 @@ func NewBranchDetail(branch *Branch) *BranchDetail {
 	}
 }
 
-func ParseTrackedBranches(input string, result TrackedBranchMap) error {
+func ParseTrackedBranches(result TrackedBranchMap, input string) error {
 	regexBranch, _ := regexp.Compile(`branch\.(.*?)\.remote (.+)`)
 	regexMerge, _ := regexp.Compile(`branch\.(.*?)\.merge ((refs\/)?heads\/)?(.+)`)
 
@@ -74,7 +75,7 @@ func ParseTrackedBranches(input string, result TrackedBranchMap) error {
 	return nil
 }
 
-func ParseBranchRefs(input string, all map[string]BranchMap) error {
+func ParseBranchRefs(all map[string]BranchMap, input string) error {
 	regexLocal, _ := regexp.Compile(`^heads\/(.+)$`)
 	regexRemote, _ := regexp.Compile(`^remotes\/(.+?)\/(.+)$`)
 
@@ -118,7 +119,7 @@ func FindTrackedBranches(result *BranchDetail, refs BranchReferenceMap, tracked 
 		if !strings.HasSuffix(trackedBranch.Merge, result.Name) {
 			// Get the remote name
 			match := regexRemoteName.FindStringSubmatch(trackedBranch.Merge)
-			if len(match) != 3 {
+			if len(match) != 4 {
 				return errors.New(fmt.Sprintf("Failed to extract tracked branch's"+
 					" remote name from '%s'", trackedBranch.Merge))
 			}
@@ -129,12 +130,21 @@ func FindTrackedBranches(result *BranchDetail, refs BranchReferenceMap, tracked 
 	return nil
 }
 
-func FindRemoteBranches(result *BranchDetail, refs BranchReferenceMap, tracked TrackedBranchMap) error {
+func FindRemoteBranches(detail *BranchDetail, refs BranchReferenceMap, tracked TrackedBranchMap) error {
+	for remote, branches := range refs {
+		// Only interested in remote branches
+		if remote == "local" {
+			continue
+		}
+		// If we find a branch with the same name on any of the remotes, assume they are the same
+		if branch, ok := branches[detail.Name]; ok {
+			detail.Remotes = append(detail.Remotes, branch)
+		}
+	}
 	return nil
 }
 
-func MergeBranchDetail(refs BranchReferenceMap, tracked TrackedBranchMap, result BranchDetailMap) error {
-
+func MergeBranchDetail(result BranchDetailMap, refs BranchReferenceMap, tracked TrackedBranchMap) error {
 	for remote, branches := range refs {
 		// Only interested in local branches
 		if remote != "local" {
