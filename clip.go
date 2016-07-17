@@ -20,7 +20,7 @@ func run(buf *string, name string, args ...string) error {
 	}
 }
 
-func trackedBranches(result pkg.TrackedBranchMap) error {
+func listTrackedBranches(result pkg.TrackedBranchMap) error {
 	var output string
 	// Using git config list all the tracked branch entries
 	if err := run(&output, "git", "config", "--get-regexp", "^branch\\."); err != nil {
@@ -29,33 +29,38 @@ func trackedBranches(result pkg.TrackedBranchMap) error {
 	return pkg.ParseTrackedBranches(output, result)
 }
 
-func listBranches(result map[string]pkg.BranchMap) error {
+func listBranchRefs(result map[string]pkg.BranchMap) error {
 	var output string
 	// Using git show-ref
 	if err := run(&output, "git", "show-ref"); err != nil {
 		return err
 	}
-	return pkg.ParseBranches(output, result)
+	return pkg.ParseBranchRefs(output, result)
 }
 
 func main() {
-	tracked := pkg.TrackedBranchMap{}
-	branches := make(map[string]pkg.BranchMap)
+	trackedBranches := pkg.TrackedBranchMap{}
+	branchRefs := pkg.BranchReferenceMap{}
+	branchDetails := pkg.BranchDetailMap{}
 
 	// List Tracked Branches
-	if err := trackedBranches(tracked); err != nil {
+	if err := listTrackedBranches(trackedBranches); err != nil {
 		fmt.Sprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("%+v\n", tracked)
+	fmt.Printf("%+v\n", trackedBranches)
 
 	// List All Branches organized by remote
-	if err := listBranches(branches); err != nil {
+	if err := listBranchRefs(branchRefs); err != nil {
 		fmt.Sprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
-	// Organize all the available information on our branches
+	// Collect all the branch information so it's simple to display
+	if err := pkg.MergeBranchDetail(branchDetails, branchRefs, trackedBranches); err != nil {
+		fmt.Sprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
 
 	// Display this information for the user
 

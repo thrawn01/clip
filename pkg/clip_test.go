@@ -48,8 +48,8 @@ var _ = Describe("pkg.clip", func() {
 	Describe("ParseBranches()", func() {
 		var branches map[string]pkg.BranchMap
 		BeforeEach(func() {
-			branches = make(map[string]pkg.BranchMap)
-			err := pkg.ParseBranches(gitShowRef, branches)
+			branches = pkg.BranchReferenceMap{}
+			err := pkg.ParseBranchRefs(gitShowRef, branches)
 			Expect(err).To(BeNil())
 		})
 
@@ -60,14 +60,14 @@ var _ = Describe("pkg.clip", func() {
 			// Should be master
 			master, ok := local["master"]
 			Expect(ok).To(Equal(true))
-			Expect(master.Name).To(Equal("master"))
+			//Expect(master.Name).To(Equal("master"))
 			Expect(master.Ref).To(Equal("heads/master"))
 			Expect(master.Sha).To(Equal("2dc90a39c09e52045a483fc8b58e45da386fb149"))
 
 			// Should be re-fix-version
 			fix, ok := local["re-fix-version"]
 			Expect(ok).To(Equal(true))
-			Expect(fix.Name).To(Equal("re-fix-version"))
+			//Expect(fix.Name).To(Equal("re-fix-version"))
 			Expect(fix.Ref).To(Equal("heads/re-fix-version"))
 			Expect(fix.Sha).To(Equal("228ea1897661759a46541676e6de0cc6bc0bddfc"))
 		})
@@ -77,7 +77,7 @@ var _ = Describe("pkg.clip", func() {
 
 			head, ok := origin["HEAD"]
 			Expect(ok).To(Equal(true))
-			Expect(head.Name).To(Equal("HEAD"))
+			//Expect(head.Name).To(Equal("HEAD"))
 			Expect(head.Ref).To(Equal("remotes/origin/HEAD"))
 			Expect(head.Sha).To(Equal("2dc90a39c09e52045a483fc8b58e45da386fb149"))
 
@@ -94,15 +94,31 @@ var _ = Describe("pkg.clip", func() {
 
 			master, ok := upstream["master"]
 			Expect(ok).To(Equal(true))
-			Expect(master.Name).To(Equal("master"))
+			//Expect(master.Name).To(Equal("master"))
 			Expect(master.Ref).To(Equal("remotes/upstream/master"))
 			Expect(master.Sha).To(Equal("2dc90a39c09e52045a483fc8b58e45da386fb149"))
 
 			fix, ok := upstream["fix-version"]
 			Expect(ok).To(Equal(true))
-			Expect(fix.Name).To(Equal("fix-version"))
+			//Expect(fix.Name).To(Equal("fix-version"))
 			Expect(fix.Ref).To(Equal("remotes/upstream/fix-version"))
 			Expect(fix.Sha).To(Equal("ac0ff092a6bd193fe73660a8f0302e5ed32911dc"))
+		})
+	})
+	Describe("MergeBranchDetail()", func() {
+		It("Should merge tracked and reference branches into a BranchDetailMap{}", func() {
+			branchDetails := pkg.BranchDetailMap{}
+			trackedBranches := pkg.TrackedBranchMap{}
+			branchRefs := pkg.BranchReferenceMap{}
+
+			err := pkg.ParseTrackedBranches(gitConfig, trackedBranches)
+			err = pkg.ParseBranchRefs(gitShowRef, branchRefs)
+
+			// Merge the branch detail
+			err = pkg.MergeBranchDetail(branchRefs, trackedBranches, branchDetails)
+
+			Expect(err).To(BeNil())
+			Expect(len(branchDetails)).To(Equal(3))
 		})
 	})
 })

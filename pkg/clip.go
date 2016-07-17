@@ -1,6 +1,8 @@
 package pkg
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -19,12 +21,30 @@ type Branch struct {
 }
 
 type BranchMap map[string]*Branch
+type BranchReferenceMap map[string]BranchMap
+
+type BranchDetail struct {
+	Name    string
+	Ref     string
+	Sha     string
+	Remotes []*Branch
+	Tracked *TrackedBranch
+}
+
+type BranchDetailMap map[string]*BranchDetail
 
 func NewBranch(name, ref, sha string) *Branch {
 	return &Branch{
-		Name: name,
-		Ref:  strings.Trim(ref, " "),
-		Sha:  strings.Trim(sha, " "),
+		Ref: strings.Trim(ref, " "),
+		Sha: strings.Trim(sha, " "),
+	}
+}
+
+func NewBranchDetail(branch *Branch) *BranchDetail {
+	return &BranchDetail{
+		Name: branch.Name,
+		Ref:  branch.Ref,
+		Sha:  branch.Sha,
 	}
 }
 
@@ -54,7 +74,7 @@ func ParseTrackedBranches(input string, result TrackedBranchMap) error {
 	return nil
 }
 
-func ParseBranches(input string, all map[string]BranchMap) error {
+func ParseBranchRefs(input string, all map[string]BranchMap) error {
 	regexLocal, _ := regexp.Compile(`^heads\/(.+)$`)
 	regexRemote, _ := regexp.Compile(`^remotes\/(.+?)\/(.+)$`)
 
@@ -82,6 +102,55 @@ func ParseBranches(input string, all map[string]BranchMap) error {
 				all[match[1]] = BranchMap{}
 				all[match[1]][match[2]] = NewBranch(match[2], ref[1], ref[0])
 			}
+		}
+	}
+	return nil
+}
+
+func FindTrackedBranches(result *BranchDetail, refs BranchReferenceMap, tracked TrackedBranchMap) error {
+	regexRemoteName, _ := regexp.Compile(`((refs\/)?heads\/)?(.+)`)
+
+	// If this branch is listed as a tracked branch
+	if trackedBranch, ok := tracked[result.Name]; ok {
+		result.Tracked = trackedBranch
+
+		// If the remote tracked branch name differs from the local branch name
+		if !strings.HasSuffix(trackedBranch.Merge, result.Name) {
+			// Get the remote name
+			match := regexRemoteName.FindStringSubmatch(trackedBranch.Merge)
+			if len(match) != 3 {
+				return errors.New(fmt.Sprintf("Failed to extract tracked branch's"+
+					" remote name from '%s'", trackedBranch.Merge))
+			}
+			// Add this branch to our list of remotes
+			result.Remotes = append(result.Remotes, refs[trackedBranch.Remote][match[3]])
+		}
+	}
+	return nil
+}
+
+func FindRemoteBranches(result *BranchDetail, refs BranchReferenceMap, tracked TrackedBranchMap) error {
+	return nil
+}
+
+func MergeBranchDetail(refs BranchReferenceMap, tracked TrackedBranchMap, result BranchDetailMap) error {
+
+	for remote, branches := range refs {
+		// Only interested in local branches
+		if remote != "local" {
+			continue
+		}
+
+		for name, branch := range branches {
+			detail := NewBranchDetail(branch)
+
+			if err := FindTrackedBranches(detail, refs, tracked); err != nil {
+				return err
+			}
+			if err := FindRemoteBranches(detail, refs, tracked); err != nil {
+				return err
+			}
+			result[name] = detail
 		}
 	}
 	return nil
