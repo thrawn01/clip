@@ -66,7 +66,7 @@ func main() {
 		if !opts.Bool("force") {
 			// Ask if we should delete this remote branch
 			msg := "Delete Remote Branch '%s/%s'"
-			if !pkg.YesNo(pkg.Opts{Default: "Y"}, msg, branch.Name, remote) {
+			if !pkg.YesNo(pkg.Opts{Default: "Y"}, msg, remote, branch.Name) {
 				continue
 			}
 		}
