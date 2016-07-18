@@ -71,7 +71,7 @@ func main() {
 			}
 		}
 
-		fmt.Printf("\033[33mDeleteing %s/%s..\033[0m\n", remote, branch.Name)
+		fmt.Printf("\033[33mDeleting %s/%s..\033[0m\n", remote, branch.Name)
 		// Delete remote branch
 		if err := exec.Command("git", "push", remote, "--delete", branch.Name).Run(); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
