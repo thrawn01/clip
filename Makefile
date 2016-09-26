@@ -14,11 +14,11 @@ define install
 	cp release/$(1)-$(VERSION)-darwin-amd64 darwin/root/usr/local/clip/bin/$(1)
 endef
 
-git-clip: clip.go
-	go build -o git-clip clip.go
+git-clip: cmd/clip/clip.go
+	go build -o git-clip cmd/clip/clip.go
 
-git-clip-remote: clip-remote.go
-	go build -o git-clip-remote clip-remote.go
+git-clip-remote: cmd/clip-remote/clip-remote.go
+	go build -o git-clip-remote cmd/clip-remote/clip-remote.go
 
 all: git-clip git-clip-remote
 
