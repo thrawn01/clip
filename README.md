@@ -4,16 +4,28 @@ A set of tools to make clip-ing remote and local git branches easy.
 
 ### Installation
 
-Build the binaries
+#### Binary
+
+Download prebuilt binaries
+* [darwin](https://github.com/thrawn01/clip/releases/download/v0.2.0/clip-v0.2.0-darwin-amd64.tar.gz)
+* [linux-386](https://github.com/thrawn01/clip/releases/download/v0.2.0/clip-v0.2.0-linux-386.tar.gz)
+* [linux-amd64](https://github.com/thrawn01/clip/releases/download/v0.2.0/clip-v0.2.0-linux-amd64.tar.gz)
+
 ```bash
-$ go install github.com/thrawn01/clip/...
+# Untar in git's exec path
+cd `git --exec-path`
+tar -vzxf clip-v0.2.0-darwin-amd64.tar.gz
 ```
 
+#### Source
+```bash
+go install github.com/thrawn01/clip/...
+```
 Link the binaries to git's exec path
 ```bash
-GITEXEC=`git --exec-path`
-ln -s $GOPATH/bin/clip $GITEXEC/git-clip
-ln -s $GOPATH/bin/clip-remote $GITEXEC/git-clip-remote
+GIT_EXEC=`git --exec-path`
+ln -s $GOPATH/bin/clip $GIT_EXEC/git-clip
+ln -s $GOPATH/bin/clip-remote $GIT_EXEC/git-clip-remote
 ```
 
 ### git clip
