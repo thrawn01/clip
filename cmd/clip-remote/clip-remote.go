@@ -18,7 +18,7 @@ func main() {
 		args.Desc("Clips remote branches that no longer are used locally"))
 	parser.AddOption("--force").Alias("-f").IsTrue().
 		Help("Don't ask before deleting remote branches")
-	parser.AddPositional("remote").Default("origin").
+	parser.AddArgument("remote").Default("origin").
 		Help("The name of the remote to clip branches from")
 
 	opts := parser.ParseArgsSimple(nil)
