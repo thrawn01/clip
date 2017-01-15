@@ -1,18 +1,18 @@
 .PHONY: all release darwin
 .DEFAULT_GOAL := all
 
-VERSION=v0.1.0
+VERSION=v0.2.0
 CWD=$(shell pwd)
 GIT_EXEC=$(shell git --exec-path)
 
 define build_release
-	GOOS=darwin GOARCH=amd64 go build -o release/darwin-amd64/$(1) cmd/$(1)/$(1).go
-	GOOS=linux GOARCH=386 go build -o release/linux-386/$(1) cmd/$(1)/$(1).go
-	GOOS=linux GOARCH=amd64 go build -o release/linux-amd64/$(1) cmd/$(1)/$(1).go
+	GOOS=darwin GOARCH=amd64 go build -o release/darwin-amd64/git-$(1) cmd/$(1)/$(1).go
+	GOOS=linux GOARCH=386 go build -o release/linux-386/git-$(1) cmd/$(1)/$(1).go
+	GOOS=linux GOARCH=amd64 go build -o release/linux-amd64/git-$(1) cmd/$(1)/$(1).go
 endef
 
 define darwin_install
-	cp release/darwin-amd64/$(1) darwin/root/usr/local/clip/bin/$(1)
+	cp release/darwin-amd64/git-$(1) darwin/root/usr/local/clip/bin/$(1)
 endef
 
 release:
