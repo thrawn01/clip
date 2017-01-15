@@ -7,22 +7,22 @@ import (
 	"sort"
 
 	"github.com/pkg/errors"
-	"github.com/thrawn01/clip/pkg"
+	"github.com/thrawn01/clip"
 )
 
 func aheadBehind(output *string, master, branch string) error {
 	var ahead, behind []string
-	if err := pkg.CommitsBetween(&ahead, master, branch); err != nil {
+	if err := clip.CommitsBetween(&ahead, master, branch); err != nil {
 		return errors.Wrap(err, "aheadBehind() - ahead")
 	}
-	if err := pkg.CommitsBetween(&behind, branch, master); err != nil {
+	if err := clip.CommitsBetween(&behind, branch, master); err != nil {
 		return errors.Wrap(err, "aheadBehind() - ahead")
 	}
 	*output = fmt.Sprintf(" (%d/%d)", len(ahead), len(behind))
 	return nil
 }
 
-func sortBranches(details pkg.BranchDetailMap) []string {
+func sortBranches(details clip.BranchDetailMap) []string {
 	var sortedBranches []string
 	for key := range details {
 		sortedBranches = append(sortedBranches, key)
@@ -31,12 +31,12 @@ func sortBranches(details pkg.BranchDetailMap) []string {
 	return sortedBranches
 }
 
-func printRemotes(branch *pkg.BranchDetail) {
+func printRemotes(branch *clip.BranchDetail) {
 	for _, remote := range branch.Remotes {
 		var commits []string
 		fmt.Printf("     %s ", remote.Ref)
 		// Commits Behind
-		if err := pkg.CommitsBetween(&commits, remote.Sha, branch.Sha); err != nil {
+		if err := clip.CommitsBetween(&commits, remote.Sha, branch.Sha); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
@@ -45,7 +45,7 @@ func printRemotes(branch *pkg.BranchDetail) {
 			continue
 		}
 		// Commits Ahead
-		if err := pkg.CommitsBetween(&commits, branch.Sha, remote.Sha); err != nil {
+		if err := clip.CommitsBetween(&commits, branch.Sha, remote.Sha); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
@@ -58,24 +58,24 @@ func printRemotes(branch *pkg.BranchDetail) {
 }
 
 func main() {
-	trackedBranches := pkg.TrackedBranchMap{}
-	branchRefs := pkg.BranchReferenceMap{}
-	details := pkg.BranchDetailMap{}
+	trackedBranches := clip.TrackedBranchMap{}
+	branchRefs := clip.BranchReferenceMap{}
+	details := clip.BranchDetailMap{}
 
 	// List Tracked Branches
-	if err := pkg.ListTrackedBranches(trackedBranches); err != nil {
+	if err := clip.ListTrackedBranches(trackedBranches); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
 	// List All Branches organized by remote
-	if err := pkg.ListBranchRefs(branchRefs); err != nil {
+	if err := clip.ListBranchRefs(branchRefs); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
 	// Collect all the branch information so it's simple to display
-	if err := pkg.MergeBranchDetail(details, branchRefs, trackedBranches); err != nil {
+	if err := clip.MergeBranchDetail(details, branchRefs, trackedBranches); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}

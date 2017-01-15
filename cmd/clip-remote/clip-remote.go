@@ -7,12 +7,12 @@ import (
 	"os/exec"
 
 	"github.com/thrawn01/args"
-	"github.com/thrawn01/clip/pkg"
+	"github.com/thrawn01/clip"
 )
 
 func main() {
-	refs := pkg.BranchReferenceMap{}
-	tracked := pkg.TrackedBranchMap{}
+	refs := clip.BranchReferenceMap{}
+	tracked := clip.TrackedBranchMap{}
 
 	parser := args.NewParser(args.Name("clip-remote"),
 		args.Desc("Clips remote branches that no longer are used locally"))
@@ -27,13 +27,13 @@ func main() {
 	remote := opts.String("remote")
 
 	// List remote and local branches
-	if err := pkg.ListBranchRefs(refs); err != nil {
+	if err := clip.ListBranchRefs(refs); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
 	// List tracked local branches
-	if err := pkg.ListTrackedBranches(tracked); err != nil {
+	if err := clip.ListTrackedBranches(tracked); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
@@ -50,23 +50,23 @@ func main() {
 			continue
 		}
 		// Does this branch exist locally?
-		if pkg.ExistsLocally(branch, refs) {
+		if clip.ExistsLocally(branch, refs) {
 			continue
 		}
 
 		// Is this branch tracking a remote branch?
-		if pkg.IsTracked(branch, remote, tracked) {
+		if clip.IsTracked(branch, remote, tracked) {
 			continue
 		}
 
-		if !pkg.ExistsRemotely(branch, remote, refs) {
+		if !clip.ExistsRemotely(branch, remote, refs) {
 			continue
 		}
 
 		if !opts.Bool("force") {
 			// Ask if we should delete this remote branch
 			msg := "Delete Remote Branch '%s/%s'"
-			if !pkg.YesNo(pkg.Opts{Default: "Y"}, msg, remote, branch.Name) {
+			if !clip.YesNo(clip.Opts{Default: "Y"}, msg, remote, branch.Name) {
 				continue
 			}
 		}

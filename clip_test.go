@@ -1,11 +1,11 @@
-package pkg_test
+package clip_test
 
 import (
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/thrawn01/clip/pkg"
+	"github.com/thrawn01/clip"
 )
 
 var gitConfig string = `branch.master.remote origin
@@ -41,8 +41,8 @@ func TestClip(t *testing.T) {
 var _ = Describe("pkg.clip", func() {
 	Describe("ParseTrackedBranches()", func() {
 		It("Should parse tracked git branches and merge branches", func() {
-			tracked := pkg.TrackedBranchMap{}
-			err := pkg.ParseTrackedBranches(tracked, gitConfig)
+			tracked := clip.TrackedBranchMap{}
+			err := clip.ParseTrackedBranches(tracked, gitConfig)
 			Expect(err).To(BeNil())
 			Expect(tracked["master"].Remote).To(Equal("origin"))
 			Expect(tracked["re-fix-version"].Merge).To(Equal("refs/heads/re-fix-version"))
@@ -50,10 +50,10 @@ var _ = Describe("pkg.clip", func() {
 		})
 	})
 	Describe("ParseBranches()", func() {
-		var branches map[string]pkg.BranchMap
+		var branches map[string]clip.BranchMap
 		BeforeEach(func() {
-			branches = pkg.BranchReferenceMap{}
-			err := pkg.ParseBranchRefs(branches, gitShowRef)
+			branches = clip.BranchReferenceMap{}
+			err := clip.ParseBranchRefs(branches, gitShowRef)
 			Expect(err).To(BeNil())
 		})
 
@@ -110,23 +110,23 @@ var _ = Describe("pkg.clip", func() {
 		})
 	})
 	Describe("FindTrackedBranches()", func() {
-		var detail *pkg.BranchDetail
-		var tracked pkg.TrackedBranchMap
-		var refs pkg.BranchReferenceMap
+		var detail *clip.BranchDetail
+		var tracked clip.TrackedBranchMap
+		var refs clip.BranchReferenceMap
 
 		BeforeEach(func() {
-			tracked = pkg.TrackedBranchMap{}
-			refs = pkg.BranchReferenceMap{}
+			tracked = clip.TrackedBranchMap{}
+			refs = clip.BranchReferenceMap{}
 
-			err := pkg.ParseTrackedBranches(tracked, gitConfig)
+			err := clip.ParseTrackedBranches(tracked, gitConfig)
 			Expect(err).To(BeNil())
-			err = pkg.ParseBranchRefs(refs, gitShowRef)
+			err = clip.ParseBranchRefs(refs, gitShowRef)
 			Expect(err).To(BeNil())
 		})
 		It("Should fill in branch details if the branch is tracking a remote branch", func() {
-			detail = pkg.NewBranchDetail(pkg.NewBranch("re-fix-version", "", ""))
+			detail = clip.NewBranchDetail(clip.NewBranch("re-fix-version", "", ""))
 
-			err := pkg.FindTrackedBranches(detail, refs, tracked)
+			err := clip.FindTrackedBranches(detail, refs, tracked)
 			Expect(err).To(BeNil())
 			Expect(detail.Name).To(Equal("re-fix-version"))
 			Expect(detail.Tracked.Remote).To(Equal("origin"))
@@ -134,9 +134,9 @@ var _ = Describe("pkg.clip", func() {
 		})
 
 		It("Should fill in branch details even if remote branch has a diff name", func() {
-			detail = pkg.NewBranchDetail(pkg.NewBranch("fix-me-local", "", ""))
+			detail = clip.NewBranchDetail(clip.NewBranch("fix-me-local", "", ""))
 
-			err := pkg.FindTrackedBranches(detail, refs, tracked)
+			err := clip.FindTrackedBranches(detail, refs, tracked)
 			Expect(err).To(BeNil())
 			Expect(detail.Name).To(Equal("fix-me-local"))
 			Expect(detail.Tracked.Remote).To(Equal("upstream"))
@@ -144,23 +144,23 @@ var _ = Describe("pkg.clip", func() {
 		})
 	})
 	Describe("FindRemoteBranches()", func() {
-		var detail *pkg.BranchDetail
-		var tracked pkg.TrackedBranchMap
-		var refs pkg.BranchReferenceMap
+		var detail *clip.BranchDetail
+		var tracked clip.TrackedBranchMap
+		var refs clip.BranchReferenceMap
 
 		BeforeEach(func() {
-			tracked = pkg.TrackedBranchMap{}
-			refs = pkg.BranchReferenceMap{}
+			tracked = clip.TrackedBranchMap{}
+			refs = clip.BranchReferenceMap{}
 
-			err := pkg.ParseTrackedBranches(tracked, gitConfig)
+			err := clip.ParseTrackedBranches(tracked, gitConfig)
 			Expect(err).To(BeNil())
-			err = pkg.ParseBranchRefs(refs, gitShowRef)
+			err = clip.ParseBranchRefs(refs, gitShowRef)
 			Expect(err).To(BeNil())
 		})
 		It("Should add remotes to details if the local branch has the same name as a remote branch", func() {
-			detail = pkg.NewBranchDetail(pkg.NewBranch("master", "", ""))
+			detail = clip.NewBranchDetail(clip.NewBranch("master", "", ""))
 
-			err := pkg.FindRemoteBranches(detail, refs, tracked)
+			err := clip.FindRemoteBranches(detail, refs, tracked)
 			Expect(err).To(BeNil())
 			remotes := detail.Remotes
 			Expect(len(remotes)).To(Equal(2))
@@ -172,17 +172,17 @@ var _ = Describe("pkg.clip", func() {
 	})
 	Describe("MergeBranchDetail()", func() {
 		It("Should merge tracked and reference branches into a BranchDetailMap{}", func() {
-			details := pkg.BranchDetailMap{}
-			tracked := pkg.TrackedBranchMap{}
-			refs := pkg.BranchReferenceMap{}
+			details := clip.BranchDetailMap{}
+			tracked := clip.TrackedBranchMap{}
+			refs := clip.BranchReferenceMap{}
 
-			err := pkg.ParseTrackedBranches(tracked, gitConfig)
+			err := clip.ParseTrackedBranches(tracked, gitConfig)
 			Expect(err).To(BeNil())
-			err = pkg.ParseBranchRefs(refs, gitShowRef)
+			err = clip.ParseBranchRefs(refs, gitShowRef)
 			Expect(err).To(BeNil())
 
 			// Merge the branch detail
-			err = pkg.MergeBranchDetail(details, refs, tracked)
+			err = clip.MergeBranchDetail(details, refs, tracked)
 
 			Expect(err).To(BeNil())
 			Expect(len(details)).To(Equal(4))
@@ -201,7 +201,7 @@ var _ = Describe("pkg.clip", func() {
 			commits := make([]string, 0)
 
 			// These sha's exist within our own repository
-			err := pkg.CommitsBetween(&commits, "152b5832f1e6f06d3efed6e55657c997c41855ed",
+			err := clip.CommitsBetween(&commits, "152b5832f1e6f06d3efed6e55657c997c41855ed",
 				"c73462192ad2e0a690bad82659a7f7c7a1a8bc62")
 			Expect(err).To(BeNil())
 			Expect(len(commits)).To(Equal(3))
@@ -210,69 +210,69 @@ var _ = Describe("pkg.clip", func() {
 			commits := make([]string, 0)
 
 			// These sha's exist within our own repository
-			err := pkg.CommitsBetween(&commits, "152b5832f1e6f06d3efed6e55657c997c41855ed",
+			err := clip.CommitsBetween(&commits, "152b5832f1e6f06d3efed6e55657c997c41855ed",
 				"152b5832f1e6f06d3efed6e55657c997c41855ed")
 			Expect(err).To(BeNil())
 			Expect(len(commits)).To(Equal(0))
 		})
 	})
 	Describe("ExistsLocally()", func() {
-		var refs pkg.BranchReferenceMap
+		var refs clip.BranchReferenceMap
 
 		BeforeEach(func() {
-			refs = pkg.BranchReferenceMap{}
-			err := pkg.ParseBranchRefs(refs, gitShowRef)
+			refs = clip.BranchReferenceMap{}
+			err := clip.ParseBranchRefs(refs, gitShowRef)
 			Expect(err).To(BeNil())
 		})
 
 		It("Should return true if the branch exists locally", func() {
-			result := pkg.ExistsLocally(&pkg.Branch{Name: "master"}, refs)
+			result := clip.ExistsLocally(&clip.Branch{Name: "master"}, refs)
 			Expect(result).To(Equal(true))
-			result = pkg.ExistsLocally(&pkg.Branch{Name: "fix-me-local"}, refs)
+			result = clip.ExistsLocally(&clip.Branch{Name: "fix-me-local"}, refs)
 			Expect(result).To(Equal(true))
 		})
 		It("Should return false if the branch doesn't exist locally", func() {
-			result := pkg.ExistsLocally(&pkg.Branch{Name: "unknown-branch"}, refs)
+			result := clip.ExistsLocally(&clip.Branch{Name: "unknown-branch"}, refs)
 			Expect(result).To(Equal(false))
 		})
 	})
 	Describe("ExistsRemotely()", func() {
-		var refs pkg.BranchReferenceMap
+		var refs clip.BranchReferenceMap
 
 		BeforeEach(func() {
-			refs = pkg.BranchReferenceMap{}
-			err := pkg.ParseBranchRefs(refs, gitShowRef)
+			refs = clip.BranchReferenceMap{}
+			err := clip.ParseBranchRefs(refs, gitShowRef)
 			Expect(err).To(BeNil())
 		})
 
 		It("Should return true if the branch exists on the specified remote", func() {
-			result := pkg.ExistsRemotely(&pkg.Branch{Name: "master"}, "origin", refs)
+			result := clip.ExistsRemotely(&clip.Branch{Name: "master"}, "origin", refs)
 			Expect(result).To(Equal(true))
-			result = pkg.ExistsRemotely(&pkg.Branch{Name: "fix-version"}, "upstream", refs)
+			result = clip.ExistsRemotely(&clip.Branch{Name: "fix-version"}, "upstream", refs)
 			Expect(result).To(Equal(true))
 		})
 		It("Should return false if the branch doesn't exist on the specified remote", func() {
-			result := pkg.ExistsRemotely(&pkg.Branch{Name: "fix-me-local"}, "origin", refs)
+			result := clip.ExistsRemotely(&clip.Branch{Name: "fix-me-local"}, "origin", refs)
 			Expect(result).To(Equal(false))
 		})
 	})
 	Describe("IsTracked()", func() {
-		var tracked pkg.TrackedBranchMap
+		var tracked clip.TrackedBranchMap
 
 		BeforeEach(func() {
-			tracked = pkg.TrackedBranchMap{}
-			err := pkg.ParseTrackedBranches(tracked, gitConfig)
+			tracked = clip.TrackedBranchMap{}
+			err := clip.ParseTrackedBranches(tracked, gitConfig)
 			Expect(err).To(BeNil())
 		})
 
 		It("Should return true if the branch is tracked remotely", func() {
-			result := pkg.IsTracked(&pkg.Branch{Name: "master"}, "origin", tracked)
+			result := clip.IsTracked(&clip.Branch{Name: "master"}, "origin", tracked)
 			Expect(result).To(Equal(true))
-			result = pkg.IsTracked(&pkg.Branch{Name: "fix-me-local"}, "upstream", tracked)
+			result = clip.IsTracked(&clip.Branch{Name: "fix-me-local"}, "upstream", tracked)
 			Expect(result).To(Equal(true))
 		})
 		It("Should return false if the branch is tracked remotely but is on wrong remote", func() {
-			result := pkg.IsTracked(&pkg.Branch{Name: "fix-me-local"}, "origin", tracked)
+			result := clip.IsTracked(&clip.Branch{Name: "fix-me-local"}, "origin", tracked)
 			Expect(result).To(Equal(false))
 		})
 	})
