@@ -33,6 +33,10 @@ func sortBranches(details clip.BranchDetailMap) []string {
 
 func printRemotes(branch *clip.BranchDetail) {
 	for _, remote := range branch.Remotes {
+		if remote == nil {
+			continue
+		}
+
 		var commits []string
 		fmt.Printf("     %s ", remote.Ref)
 		// Commits Behind

@@ -21,7 +21,7 @@ func main() {
 	parser.AddArgument("remote").Default("origin").
 		Help("The name of the remote to clip branches from")
 
-	opts := parser.ParseArgsSimple(nil)
+	opts := parser.ParseSimple(nil)
 
 	// Get which remote to clip
 	remote := opts.String("remote")
