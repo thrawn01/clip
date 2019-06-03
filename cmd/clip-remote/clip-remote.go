@@ -41,7 +41,7 @@ func main() {
 	// Find remote branches that do not have local branches and are not tracked
 	branches, ok := refs[remote]
 	if !ok {
-		fmt.Fprintln(os.Stderr, "No such remote named '%s'", remote)
+		fmt.Fprintf(os.Stderr, "No such remote named '%s'", remote)
 		os.Exit(1)
 	}
 
