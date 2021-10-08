@@ -8,6 +8,8 @@ require (
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
+	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cast v1.3.0 // indirect
 	github.com/thrawn01/args v0.3.0
+	gopkg.in/ini.v1 v1.63.2 // indirect
 )
