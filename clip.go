@@ -1,13 +1,12 @@
 package clip
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
-
-	"bufio"
-	"os"
 
 	"github.com/pkg/errors"
 )
@@ -63,7 +62,7 @@ func ListTrackedBranches(result TrackedBranchMap) error {
 	return ParseTrackedBranches(result, output)
 }
 
-// Parse the output of `git config` and return a structure that looks like
+// ParseTrackedBranches parses the output of `git config` and return a structure that looks like
 //
 //	tracked := map[string]*TrackedBranch {
 //		"master": &TrackedBranch{ Remote: "origin", Merge: "refs/head/master"},
@@ -105,7 +104,7 @@ func ListBranchRefs(result map[string]BranchMap) error {
 	return ParseBranchRefs(result, output)
 }
 
-// Parse the output of `git show-ref` and return a structure that looks like
+// ParseBranchRefs parses the output of `git show-ref` and return a structure that looks like
 //
 // 	all := map[string]BranchMap {
 //		"local": map[string]*Branch {
@@ -204,6 +203,12 @@ func MergeBranchDetail(result BranchDetailMap, refs BranchReferenceMap, tracked 
 			if err := FindRemoteBranches(detail, refs, tracked); err != nil {
 				return err
 			}
+
+			// Since the main branch could be main or master or something else
+			if name == "main" || name == "master" || name == "trunk" {
+				name = "_trunk_"
+			}
+
 			result[name] = detail
 		}
 	}

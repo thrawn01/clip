@@ -92,14 +92,14 @@ func main() {
 		if branch.Tracked != nil {
 			tracked = fmt.Sprintf(" [%s]", branch.Tracked.Remote)
 		}
-		if name != "master" {
-			if err := aheadBehind(&follow, details["master"].Sha, branch.Sha); err != nil {
+		if name != "_trunk_" {
+			if err := aheadBehind(&follow, details["_trunk_"].Sha, branch.Sha); err != nil {
 				fmt.Fprintln(os.Stderr, err.Error())
 				os.Exit(1)
 			}
 		}
 		// Print the branch name and the remote it's tracking
-		fmt.Printf("\033[33m%s\033[0m%s%s\n", name, follow, tracked)
+		fmt.Printf("\033[33m%s\033[0m%s%s\n", branch.Name, follow, tracked)
 		// Print all the remotes associated with this branch
 		printRemotes(branch)
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-
 	"os/exec"
 
 	"github.com/thrawn01/args"
