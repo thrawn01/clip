@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/thrawn01/args"
 	"github.com/thrawn01/clip"
@@ -17,6 +18,9 @@ func main() {
 		args.Desc("Clips remote branches that no longer are used locally"))
 	parser.AddOption("--force").Alias("-f").IsTrue().
 		Help("Don't ask before deleting remote branches")
+	parser.AddOption("prefix").Default("").Alias("-p").
+		Help("Attempt to prune only branches with this prefix." +
+			" IE: '-p thrawn' will prune 'thrawn/dev' and 'thrawn/clip' branches")
 	parser.AddArgument("remote").Default("origin").
 		Help("The name of the remote to clip branches from")
 
@@ -48,6 +52,7 @@ func main() {
 		if branch.Name == "HEAD" {
 			continue
 		}
+
 		// Does this branch exist locally?
 		if clip.ExistsLocally(branch, refs) {
 			continue
@@ -60,6 +65,12 @@ func main() {
 
 		if !clip.ExistsRemotely(branch, remote, refs) {
 			continue
+		}
+
+		if prefix := opts.String("prefix"); prefix != "" {
+			if !strings.HasPrefix(branch.Name, prefix) {
+				continue
+			}
 		}
 
 		if !opts.Bool("force") {
