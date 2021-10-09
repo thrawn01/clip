@@ -12,6 +12,7 @@ import (
 )
 
 type TrackedBranch struct {
+	Name   string
 	Remote string
 	Merge  string
 }
@@ -79,7 +80,7 @@ func ParseTrackedBranches(result TrackedBranchMap, input string) error {
 			if tracked, ok := result[branch[1]]; ok {
 				tracked.Remote = branch[2]
 			} else {
-				result[branch[1]] = &TrackedBranch{Remote: branch[2]}
+				result[branch[1]] = &TrackedBranch{Name: branch[1], Remote: branch[2]}
 			}
 		}
 		merge := regexMerge.FindStringSubmatch(line)

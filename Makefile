@@ -1,7 +1,7 @@
 .PHONY: all release darwin
 .DEFAULT_GOAL := all
 
-VERSION=v0.2.1
+VERSION=v0.2.2
 CWD=$(shell pwd)
 GIT_EXEC=$(shell git --exec-path)
 
