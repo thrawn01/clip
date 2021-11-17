@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Update 'version' file
       run: echo "${{ github.event.release.tag_name }}" > version
 
@@ -21,15 +21,16 @@ jobs:
 
     - name: Build
       run: make release
-      
+
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: ${{ github.event.release.tag_name }}
         files: |
           clip-${{ github.event.release.tag_name }}-darwin-amd64.tar.gz
           clip-${{ github.event.release.tag_name }}-linux-386.tar.gz
           clip-${{ github.event.release.tag_name }}-linux-amd64.tar.gz
-          
+
     # Commit the updated 'version' file
     - name: Commit changes
       uses: EndBug/add-and-commit@v7
