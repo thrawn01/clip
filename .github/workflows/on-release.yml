@@ -1,0 +1,40 @@
+name: On Release Workflow
+
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Update 'version' file
+      run: echo "${{ github.event.release.tag_name }}" > version
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: Build
+      run: make release
+      
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          clip-${{ github.event.release.tag_name }}-darwin-amd64.tar.gz
+          clip-${{ github.event.release.tag_name }}-linux-386.tar.gz
+          clip-${{ github.event.release.tag_name }}-linux-amd64.tar.gz
+          
+    # Commit the updated 'version' file
+    - name: Commit changes
+      uses: EndBug/add-and-commit@v7
+      with:
+        default_author: github_actions
+        message: 'Update version number'
+        branch: master
+        add: 'version'
