@@ -3,11 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
-
 	"sort"
 
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/thrawn01/clip"
+)
+
+var (
+	yellow = color.New(color.FgYellow).SprintFunc()
+	red    = color.New(color.FgRed).PrintfFunc()
+	green  = color.New(color.FgGreen).PrintfFunc()
 )
 
 func aheadBehind(output *string, master, branch string) error {
@@ -45,7 +51,7 @@ func printRemotes(branch *clip.BranchDetail) {
 			os.Exit(1)
 		}
 		if len(commits) != 0 {
-			fmt.Printf("\033[32mis %d commits behind\033[0m\n", len(commits))
+			green("is %d commits behind\n", len(commits))
 			continue
 		}
 		// Commits Ahead
@@ -54,7 +60,7 @@ func printRemotes(branch *clip.BranchDetail) {
 			os.Exit(1)
 		}
 		if len(commits) != 0 {
-			fmt.Printf("\033[31mis %d commits ahead\033[0m\n", len(commits))
+			red("is %d commits ahead\n", len(commits))
 			continue
 		}
 		fmt.Println("")
@@ -99,7 +105,7 @@ func main() {
 			}
 		}
 		// Print the branch name and the remote it's tracking
-		fmt.Printf("\033[33m%s\033[0m%s%s\n", branch.Name, follow, tracked)
+		fmt.Printf("%s%s%s\n", yellow(branch.Name), follow, tracked)
 		// Print all the remotes associated with this branch
 		printRemotes(branch)
 	}

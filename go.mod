@@ -3,6 +3,7 @@ module github.com/thrawn01/clip
 go 1.10
 
 require (
+	github.com/fatih/color v1.13.0
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/go-ini/ini v1.42.0 // indirect
 	github.com/onsi/ginkgo v1.8.0

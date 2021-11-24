@@ -6,9 +6,12 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/thrawn01/args"
 	"github.com/thrawn01/clip"
 )
+
+var yellow = color.New(color.FgYellow).PrintfFunc()
 
 func main() {
 	refs := clip.BranchReferenceMap{}
@@ -67,6 +70,7 @@ func main() {
 			continue
 		}
 
+		// Is this branch name prefixed with something?
 		if prefix := opts.String("prefix"); prefix != "" {
 			if !strings.HasPrefix(branch.Name, prefix) {
 				continue
@@ -81,7 +85,7 @@ func main() {
 			}
 		}
 
-		fmt.Printf("\033[33mDeleting %s/%s..\033[0m\n", remote, branch.Name)
+		yellow("Deleting %s/%s..\n", remote, branch.Name)
 		// Delete remote branch
 		if err := exec.Command("git", "push", remote, "--delete", branch.Name).Run(); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
