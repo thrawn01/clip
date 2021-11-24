@@ -27,9 +27,9 @@ jobs:
       with:
         tag_name: ${{ github.event.release.tag_name }}
         files: |
-          clip-${{ github.event.release.tag_name }}-darwin-amd64.tar.gz
-          clip-${{ github.event.release.tag_name }}-linux-386.tar.gz
-          clip-${{ github.event.release.tag_name }}-linux-amd64.tar.gz
+          release/clip-${{ github.event.release.tag_name }}-darwin-amd64.tar.gz
+          release/clip-${{ github.event.release.tag_name }}-linux-386.tar.gz
+          release/clip-${{ github.event.release.tag_name }}-linux-amd64.tar.gz
 
     # Commit the updated 'version' file
     - name: Commit changes
