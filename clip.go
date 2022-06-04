@@ -189,6 +189,7 @@ func FindRemoteBranches(detail *BranchDetail, refs BranchReferenceMap, tracked T
 }
 
 func MergeBranchDetail(result BranchDetailMap, refs BranchReferenceMap, tracked TrackedBranchMap) error {
+	foundTrunk := false
 	for remote, branches := range refs {
 		// Only interested in local branches
 		if remote != "local" {
@@ -208,10 +209,14 @@ func MergeBranchDetail(result BranchDetailMap, refs BranchReferenceMap, tracked 
 			// Since the main branch could be main or master or something else
 			if name == "main" || name == "master" || name == "trunk" {
 				name = "_trunk_"
+				foundTrunk = true
 			}
 
 			result[name] = detail
 		}
+	}
+	if !foundTrunk {
+		return errors.New("No local branch named 'main', 'master', or 'trunk'")
 	}
 	return nil
 }
