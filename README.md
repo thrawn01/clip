@@ -60,7 +60,8 @@ tar -vzxf clip-v0.2.0-darwin-amd64.tar.gz
 
 #### Source
 ```bash
-go install github.com/thrawn01/clip/...
+go install github.com/thrawn01/clip/cmd/clip@latest
+go install github.com/thrawn01/clip/cmd/clip-remote@latest
 ```
 Link the binaries to git's exec path
 ```bash
