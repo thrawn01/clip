@@ -65,6 +65,12 @@ go install github.com/thrawn01/clip/cmd/clip-remote@latest
 ```
 Link the binaries to git's exec path
 ```bash
+# Fish
+set GIT_EXEC (git --exec-path)
+ln -s $GOPATH/bin/clip $GIT_EXEC/git-clip
+ln -s $GOPATH/bin/clip-remote $GIT_EXEC/git-clip-remote
+
+# sh
 GIT_EXEC=`git --exec-path`
 ln -s $GOPATH/bin/clip $GIT_EXEC/git-clip
 ln -s $GOPATH/bin/clip-remote $GIT_EXEC/git-clip-remote
